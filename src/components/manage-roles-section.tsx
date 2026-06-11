@@ -4,6 +4,7 @@ import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, View } from 
 
 import { ChangePasswordModal } from '@/components/change-password-modal';
 import { EditNameModal } from '@/components/edit-name-modal';
+import { RemoveStaffModal } from '@/components/remove-staff-modal';
 import { FormField } from '@/components/form-field';
 import { SelectField } from '@/components/select-field';
 import { PrimaryButton } from '@/components/primary-button';
@@ -51,6 +52,7 @@ export function ManageRolesSection() {
   const [nameTarget, setNameTarget] = useState<ProfileRow | null>(null);
   const [editFullName, setEditFullName] = useState('');
   const [nameError, setNameError] = useState('');
+  const [removeTarget, setRemoveTarget] = useState<ProfileRow | null>(null);
 
   const loadManagers = useCallback(async () => {
     const rows = await fetchStudioManagers();
@@ -186,35 +188,31 @@ export function ManageRolesSection() {
     }
   };
 
-  const handleRemoveManager = async (manager: ProfileRow) => {
+  const openRemoveStaff = (manager: ProfileRow) => {
     if (manager.role === 'super_admin') return;
+    setRemoveTarget(manager);
+    setError('');
+    setSuccess('');
+  };
 
-    const confirmMessage = `Remove ${manager.full_name || manager.email} as a manager? They will lose studio access.`;
-    let confirmed = false;
+  const closeRemoveStaff = () => {
+    setRemoveTarget(null);
+  };
 
-    if (Platform.OS === 'web') {
-      confirmed = window.confirm(confirmMessage);
-    } else {
-      confirmed = await new Promise<boolean>((resolve) => {
-        Alert.alert('Remove manager', confirmMessage, [
-          { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
-          { text: 'Remove', style: 'destructive', onPress: () => resolve(true) },
-        ]);
-      });
-    }
-
-    if (!confirmed) return;
+  const handleConfirmRemoveStaff = async () => {
+    if (!removeTarget) return;
 
     setSubmitting(true);
     setError('');
     try {
-      await removeManager(manager.id);
+      await removeManager(removeTarget.id);
       await loadManagers();
-      setSuccess('Manager removed.');
+      setSuccess('Staff member removed.');
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unable to remove manager.';
+      const message = err instanceof Error ? err.message : 'Unable to remove staff member.';
       setError(message);
-      showMessage('Unable to remove manager', message);
+      showMessage('Unable to remove staff member', message);
+      throw err;
     } finally {
       setSubmitting(false);
     }
@@ -371,7 +369,7 @@ export function ManageRolesSection() {
 
               {manager.role !== 'super_admin' ? (
                 <Pressable
-                  onPress={() => void handleRemoveManager(manager)}
+                  onPress={() => openRemoveStaff(manager)}
                   disabled={submitting}
                   accessibilityRole="button"
                   accessibilityLabel="Remove staff member"
@@ -418,6 +416,13 @@ export function ManageRolesSection() {
         onChangeConfirmPassword={setConfirmPassword}
         onSubmit={() => void handleChangePassword()}
         onClose={closeChangePassword}
+      />
+
+      <RemoveStaffModal
+        visible={removeTarget != null}
+        staff={removeTarget}
+        onClose={closeRemoveStaff}
+        onConfirm={handleConfirmRemoveStaff}
       />
     </View>
   );

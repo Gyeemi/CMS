@@ -56,18 +56,56 @@ function walkInDedupeKey(fullName: string, phone: string, email: string) {
   return `name:${fullName.trim().toLowerCase()}`;
 }
 
+type RegisteredProfile = Awaited<ReturnType<typeof fetchRegisteredClients>>[number];
+
 function isRegisteredWalkIn(
   fullName: string,
   phone: string,
-  registered: Awaited<ReturnType<typeof fetchRegisteredClients>>,
+  email: string,
+  registered: RegisteredProfile[],
 ) {
   const phoneDigits = normalizeBhutanPhoneDigits(phone);
-  return registered.some((profile) => {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const nameMatches = registered.filter((profile) =>
+    clientNamesMatch(fullName, profile.full_name ?? ''),
+  );
+
+  for (const profile of nameMatches) {
+    const profileEmail = (profile.email ?? '').trim().toLowerCase();
+    if (normalizedEmail && profileEmail && normalizedEmail === profileEmail) {
+      return true;
+    }
+
     const profilePhone = normalizeBhutanPhoneDigits(profile.phone ?? '');
     const phoneMatch =
       phoneDigits.length === 8 && profilePhone.length === 8 && phoneDigits === profilePhone;
-    return phoneMatch && clientNamesMatch(fullName, profile.full_name ?? '');
-  });
+    if (phoneMatch) {
+      return true;
+    }
+  }
+
+  if (nameMatches.length !== 1) {
+    return false;
+  }
+
+  const onlyMatch = nameMatches[0];
+  const onlyEmail = (onlyMatch.email ?? '').trim().toLowerCase();
+  if (normalizedEmail && onlyEmail && normalizedEmail !== onlyEmail) {
+    return false;
+  }
+
+  if (phoneDigits.length === 8) {
+    const phoneOwnedByOther = registered.some((profile) => {
+      if (profile.id === onlyMatch.id) return false;
+      return normalizeBhutanPhoneDigits(profile.phone ?? '') === phoneDigits;
+    });
+    if (phoneOwnedByOther) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 type StaffProfileRow = {
@@ -173,7 +211,7 @@ export async function fetchManageClients(): Promise<ManageClientRow[]> {
     const email = walkIn.email?.trim() ?? '';
     if (matchesStudioStaff(fullName, walkIn.phone ?? '', email, staffProfiles)) continue;
     if (email && knownEmails.has(email.toLowerCase())) continue;
-    if (isRegisteredWalkIn(fullName, walkIn.phone ?? '', registered)) continue;
+    if (isRegisteredWalkIn(fullName, walkIn.phone ?? '', email, registered)) continue;
 
     const key = walkInDedupeKey(fullName, walkIn.phone ?? '', email);
     if (exclusions.has(key)) continue;
@@ -214,7 +252,7 @@ export async function fetchManageClients(): Promise<ManageClientRow[]> {
 
     if (matchesStudioStaff(name, phone, email, staffProfiles)) continue;
     if (email && knownEmails.has(email)) continue;
-    if (isRegisteredWalkIn(name, phone, registered)) continue;
+    if (isRegisteredWalkIn(name, phone, email, registered)) continue;
 
     const key = walkInDedupeKey(name, phone, email);
     if (exclusions.has(key)) continue;

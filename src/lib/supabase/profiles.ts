@@ -63,6 +63,16 @@ export async function updateClientProfile(
     throw new Error('You can only update your own profile.');
   }
 
+  const { data: existingProfile, error: existingProfileError } = await supabase
+    .from('profiles')
+    .select('full_name, phone, email')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (existingProfileError) {
+    throw new Error(getSupabaseErrorMessage(existingProfileError, 'Unable to load profile.'));
+  }
+
   const { error: profileError } = await supabase
     .from('profiles')
     .update({
@@ -89,6 +99,29 @@ export async function updateClientProfile(
 
   if (authError) {
     throw new Error(getSupabaseErrorMessage(authError, 'Unable to save user name.'));
+  }
+
+  const profileEmail =
+    existingProfile?.email?.trim() ||
+    authData.user?.email?.trim() ||
+    '';
+
+  const { error: syncError } = await supabase.rpc('sync_registered_client_contact', {
+    p_client_id: id,
+    p_full_name: fullName,
+    p_phone: updates.phone.trim(),
+    p_email: profileEmail,
+    p_old_full_name: existingProfile?.full_name?.trim() ?? '',
+    p_old_phone: existingProfile?.phone?.trim() ?? '',
+  });
+
+  if (syncError) {
+    throw new Error(
+      getSupabaseErrorMessage(
+        syncError,
+        'Profile saved, but linked studio records could not be updated. Run supabase/fix-sync-client-profile-contact.sql in Supabase, then save again.',
+      ),
+    );
   }
 }
 
