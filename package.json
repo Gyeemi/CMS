@@ -40,7 +40,8 @@
     "@types/react": "~19.2.2",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~56.0.4",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "workbox-cli": "^7.4.1"
   },
   "scripts": {
     "start": "expo start --lan",
@@ -50,7 +51,7 @@
     "android:tunnel": "node ./scripts/start-android-dev.mjs --tunnel",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build": "expo export --platform web",
+    "build": "expo export --platform web && workbox generateSW workbox-config.js",
     "create-admin": "node ./scripts/create-admin.mjs",
     "migrate:booking-date": "node ./scripts/apply-booking-date-migration.mjs",
     "lint": "expo lint"

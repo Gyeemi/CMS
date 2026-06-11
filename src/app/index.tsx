@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FormField } from '@/components/form-field';
 import { GroovXBrand } from '@/components/groovx-brand';
+import { InstallAppButton } from '@/components/install-app-button';
 import { PrimaryButton } from '@/components/primary-button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -71,6 +72,8 @@ export default function HomeScreen() {
               Turning Vibes into Hits
             </ThemedText>
           </View>
+
+          <InstallAppButton />
 
           <View style={styles.form}>
             <FormField
