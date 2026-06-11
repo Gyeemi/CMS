@@ -95,6 +95,8 @@ export const Spacing = {
   six: 64,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
+export const BottomTabInset = Platform.select({ ios: 50, android: 80, web: 64 }) ?? 0;
 export const MaxContentWidth = 1100;
 export const SidebarWidth = 240;
+/** Viewports below this width use mobile layout on web (bottom tabs, no sidebar). */
+export const MobileLayoutBreakpoint = 768;

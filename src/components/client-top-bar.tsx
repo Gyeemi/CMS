@@ -6,6 +6,7 @@ import { LogoutButton } from '@/components/logout-button';
 import { SidebarProfileAvatar } from '@/components/sidebar-profile-avatar';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Spacing } from '@/constants/theme';
+import { useCompactLayout } from '@/hooks/use-compact-layout';
 import { useTheme } from '@/hooks/use-theme';
 
 const TOP_BAR_AVATAR_SIZE = 36;
@@ -13,7 +14,8 @@ const TOP_BAR_AVATAR_SIZE = 36;
 export function ClientTopBar() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const showProfileAvatar = Platform.OS !== 'web';
+  const compactLayout = useCompactLayout();
+  const showProfileAvatar = Platform.OS !== 'web' || compactLayout;
 
   return (
     <View
@@ -32,7 +34,7 @@ export function ClientTopBar() {
       )}
       <View style={styles.spacer} />
       <View style={styles.actions}>
-        {Platform.OS !== 'web' ? <LogoutButton compact /> : null}
+        {showProfileAvatar ? <LogoutButton compact /> : null}
         <ThemeToggle compact />
         <ClientNotificationBell />
       </View>

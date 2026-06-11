@@ -155,6 +155,7 @@ export type Database = {
           email: string;
           full_name: string;
           phone: string;
+          role: StaffInviteRole;
           created_by: string;
           created_at: string;
         },
@@ -162,12 +163,14 @@ export type Database = {
           email: string;
           full_name?: string;
           phone?: string;
+          role?: StaffInviteRole;
           created_by: string;
           created_at?: string;
         },
         Partial<{
           full_name: string;
           phone: string;
+          role: StaffInviteRole;
         }>
       >;
       studio_payment_accounts: TableDef<

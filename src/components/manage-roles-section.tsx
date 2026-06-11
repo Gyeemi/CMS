@@ -94,9 +94,9 @@ export function ManageRolesSection() {
         `${staffRole} account created. They can sign in from the home page.`,
       );
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unable to add manager.';
+      const message = getSupabaseErrorMessage(err, `Unable to add ${staffRole.toLowerCase()}.`);
       setError(message);
-      showMessage('Unable to add manager', message);
+      showMessage(`Unable to add ${staffRole.toLowerCase()}`, message);
     } finally {
       setSubmitting(false);
     }

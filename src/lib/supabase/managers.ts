@@ -47,10 +47,16 @@ export async function inviteManager(input: ManagerInviteInput): Promise<void> {
   });
 
   if (pendingError) {
-    if (pendingError.message.toLowerCase().includes('duplicate')) {
+    const pendingMessage = getSupabaseErrorMessage(pendingError, 'Unable to queue staff invite.');
+    if (pendingMessage.toLowerCase().includes('duplicate')) {
       throw new Error('This email is already pending or registered.');
     }
-    throw pendingError;
+    if (pendingMessage.toLowerCase().includes('row-level security')) {
+      throw new Error(
+        'Only admin@groovx.com (super admin) can add staff. Sign in with that account and try again.',
+      );
+    }
+    throw new Error(pendingMessage);
   }
 
   const { error: signUpError } = await supabase.auth.signUp({
@@ -66,6 +72,20 @@ export async function inviteManager(input: ManagerInviteInput): Promise<void> {
 
   if (signUpError) {
     if (signUpError.message.toLowerCase().includes('already')) {
+      const { error: sessionRestoreError } = await supabase.auth.setSession({
+        access_token: superSession.access_token,
+        refresh_token: superSession.refresh_token,
+      });
+      if (sessionRestoreError) {
+        await supabase.from('pending_managers').delete().eq('email', email);
+        throw new Error(
+          getSupabaseErrorMessage(
+            sessionRestoreError,
+            'Could not restore your super admin session. Sign in again and retry.',
+          ),
+        );
+      }
+
       const { error: promoteError } = await supabase.rpc('promote_existing_user_to_staff', {
         p_email: email,
         p_full_name: fullName,
@@ -78,7 +98,7 @@ export async function inviteManager(input: ManagerInviteInput): Promise<void> {
         throw new Error(
           getSupabaseErrorMessage(
             promoteError,
-            'This email already has an account, but it could not be promoted to staff. Run migration 20250606410000_promote_existing_staff.sql in Supabase.',
+            'This email already has an account, but it could not be promoted to staff. Run supabase/fix-provision-staff-profile.sql and supabase/migrations/20250606410000_promote_existing_staff.sql in Supabase.',
           ),
         );
       }
@@ -87,13 +107,34 @@ export async function inviteManager(input: ManagerInviteInput): Promise<void> {
     }
 
     await supabase.from('pending_managers').delete().eq('email', email);
-    throw signUpError;
+    throw new Error(getSupabaseErrorMessage(signUpError, 'Unable to create staff account.'));
   }
 
-  await supabase.auth.setSession({
+  const { error: sessionRestoreError } = await supabase.auth.setSession({
     access_token: superSession.access_token,
     refresh_token: superSession.refresh_token,
   });
+  if (sessionRestoreError) {
+    await supabase.from('pending_managers').delete().eq('email', email);
+    throw new Error(
+      getSupabaseErrorMessage(
+        sessionRestoreError,
+        'Staff account was created, but your session could not be restored. Sign in again.',
+      ),
+    );
+  }
+
+  const { error: provisionError } = await supabase.rpc('provision_staff_profile', {
+    p_email: email,
+  });
+  if (provisionError) {
+    throw new Error(
+      getSupabaseErrorMessage(
+        provisionError,
+        'Staff account was created, but the profile could not be assigned. Run supabase/fix-provision-staff-profile.sql in the Supabase SQL Editor, then try again.',
+      ),
+    );
+  }
 }
 
 export async function removeManager(managerId: string): Promise<void> {
