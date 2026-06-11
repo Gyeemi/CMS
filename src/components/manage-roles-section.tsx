@@ -2,6 +2,7 @@ import { SymbolView } from 'expo-symbols';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, View } from 'react-native';
 
+import { AdminPasswordConfirmModal } from '@/components/admin-password-confirm-modal';
 import { ChangePasswordModal } from '@/components/change-password-modal';
 import { EditNameModal } from '@/components/edit-name-modal';
 import { RemoveStaffModal } from '@/components/remove-staff-modal';
@@ -53,6 +54,7 @@ export function ManageRolesSection() {
   const [editFullName, setEditFullName] = useState('');
   const [nameError, setNameError] = useState('');
   const [removeTarget, setRemoveTarget] = useState<ProfileRow | null>(null);
+  const [showCreateConfirm, setShowCreateConfirm] = useState(false);
 
   const loadManagers = useCallback(async () => {
     const rows = await fetchStudioManagers();
@@ -82,6 +84,26 @@ export function ManageRolesSection() {
     setError('');
   };
 
+  const requestCreateStaff = () => {
+    setError('');
+    setSuccess('');
+
+    if (!fullName.trim()) {
+      setError('Enter a full name.');
+      return;
+    }
+    if (!email.trim()) {
+      setError('Enter an email address.');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+
+    setShowCreateConfirm(true);
+  };
+
   const handleAddManager = async () => {
     setError('');
     setSuccess('');
@@ -99,6 +121,7 @@ export function ManageRolesSection() {
       const message = getSupabaseErrorMessage(err, `Unable to add ${staffRole.toLowerCase()}.`);
       setError(message);
       showMessage(`Unable to add ${staffRole.toLowerCase()}`, message);
+      throw err;
     } finally {
       setSubmitting(false);
     }
@@ -300,7 +323,7 @@ export function ManageRolesSection() {
           />
           <PrimaryButton
             label={submitting ? 'Creating…' : `Create ${staffRole}`}
-            onPress={() => void handleAddManager()}
+            onPress={requestCreateStaff}
             disabled={submitting}
           />
         </ThemedView>
@@ -423,6 +446,22 @@ export function ManageRolesSection() {
         staff={removeTarget}
         onClose={closeRemoveStaff}
         onConfirm={handleConfirmRemoveStaff}
+      />
+
+      <AdminPasswordConfirmModal
+        visible={showCreateConfirm}
+        title={`Create ${staffRole}`}
+        confirmLabel={`Create ${staffRole}`}
+        submittingLabel="Creating…"
+        onClose={() => setShowCreateConfirm(false)}
+        onConfirm={handleAddManager}
+        description={
+          <ThemedText type="small" themeColor="textSecondary">
+            You are about to create a new <ThemedText type="smallBold">{staffRole}</ThemedText>{' '}
+            account for <ThemedText type="smallBold">{fullName.trim() || email.trim()}</ThemedText>{' '}
+            ({email.trim()}). They will be able to sign in from the home page.
+          </ThemedText>
+        }
       />
     </View>
   );
