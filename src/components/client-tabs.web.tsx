@@ -29,105 +29,87 @@ const CLIENT_TAB_ROUTES = [
   { name: 'profile', href: '/(client)/profile', label: 'Manage Profile', icon: { ios: 'person.circle', android: 'account_circle', web: 'account_circle' } as const },
 ] as const;
 
-function HiddenTabRoutes() {
-  return (
-    <TabList style={styles.hiddenTabList}>
-      {CLIENT_TAB_ROUTES.map((tab) => (
-        <TabTrigger key={tab.name} name={tab.name} href={tab.href} />
-      ))}
-    </TabList>
-  );
-}
-
 export default function ClientTabs() {
-  const compactLayout = useCompactLayout();
-
-  if (compactLayout) {
-    return <ClientMobileWebTabs />;
-  }
-
-  return <ClientSidebarTabs />;
-}
-
-function ClientSidebarTabs() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const compactLayout = useCompactLayout();
   const { signOutToLanding } = useAuth();
 
   return (
-    <Tabs style={styles.sidebarTabs}>
-      <HiddenTabRoutes />
+    <Tabs style={compactLayout ? styles.mobileTabs : styles.sidebarTabs}>
+      <TabList style={styles.hiddenTabList}>
+        <TabTrigger name="index" href="/(client)" />
+        <TabTrigger name="bookings" href="/(client)/bookings" />
+        <TabTrigger name="projects" href="/(client)/projects" />
+        <TabTrigger name="profile" href="/(client)/profile" />
+      </TabList>
 
-      <ThemedView type="sidebar" style={[styles.sidebar, { borderRightColor: theme.border }]}>
-        <View style={styles.sidebarInner}>
-          <View style={styles.sidebarTop}>
-            <View style={styles.brandBlock}>
-              <GroovXBrand fontSize={20} lineHeight={24} />
-              <ThemedText type="small" themeColor="textSecondary">
-                Client Portal
-              </ThemedText>
-            </View>
-
-            <View style={styles.userBlock}>
-              <SidebarProfileAvatar />
-            </View>
-
-            <View style={styles.nav}>
-              {CLIENT_TAB_ROUTES.map((tab) => (
-                <TabTrigger key={tab.name} name={tab.name} asChild>
-                  <SidebarLink>{tab.label}</SidebarLink>
-                </TabTrigger>
-              ))}
-            </View>
+      {compactLayout ? (
+        <>
+          <View style={[styles.mobileContent, { backgroundColor: theme.background }]}>
+            <ClientTopBar />
+            <TabSlot style={styles.tabSlot} />
           </View>
 
-          <View style={styles.sidebarBottom}>
-            <PrimaryButton
-              label="Logout"
-              variant="secondary"
-              onPress={() => {
-                void signOutToLanding();
-              }}
-            />
+          <View
+            style={[
+              styles.bottomTabList,
+              {
+                borderTopColor: theme.border,
+                backgroundColor: theme.background,
+                paddingBottom: Math.max(insets.bottom, Spacing.two),
+              },
+            ]}>
+            {CLIENT_TAB_ROUTES.map((tab) => (
+              <TabTrigger key={tab.name} name={tab.name} asChild>
+                <BottomTabLink label={tab.label} icon={tab.icon} />
+              </TabTrigger>
+            ))}
           </View>
-        </View>
-      </ThemedView>
+        </>
+      ) : (
+        <>
+          <ThemedView type="sidebar" style={[styles.sidebar, { borderRightColor: theme.border }]}>
+            <View style={styles.sidebarInner}>
+              <View style={styles.sidebarTop}>
+                <View style={styles.brandBlock}>
+                  <GroovXBrand fontSize={20} lineHeight={24} />
+                  <ThemedText type="small" themeColor="textSecondary">
+                    Client Portal
+                  </ThemedText>
+                </View>
 
-      <View style={[styles.content, { backgroundColor: theme.background }]}>
-        <ClientTopBar />
-        <TabSlot style={styles.tabSlot} />
-      </View>
-    </Tabs>
-  );
-}
+                <View style={styles.userBlock}>
+                  <SidebarProfileAvatar />
+                </View>
 
-function ClientMobileWebTabs() {
-  const theme = useTheme();
-  const insets = useSafeAreaInsets();
+                <View style={styles.nav}>
+                  {CLIENT_TAB_ROUTES.map((tab) => (
+                    <TabTrigger key={tab.name} name={tab.name} asChild>
+                      <SidebarLink>{tab.label}</SidebarLink>
+                    </TabTrigger>
+                  ))}
+                </View>
+              </View>
 
-  return (
-    <Tabs style={styles.mobileTabs}>
-      <HiddenTabRoutes />
+              <View style={styles.sidebarBottom}>
+                <PrimaryButton
+                  label="Logout"
+                  variant="secondary"
+                  onPress={() => {
+                    void signOutToLanding();
+                  }}
+                />
+              </View>
+            </View>
+          </ThemedView>
 
-      <View style={[styles.mobileContent, { backgroundColor: theme.background }]}>
-        <ClientTopBar />
-        <TabSlot style={styles.tabSlot} />
-      </View>
-
-      <View
-        style={[
-          styles.bottomTabList,
-          {
-            borderTopColor: theme.border,
-            backgroundColor: theme.background,
-            paddingBottom: Math.max(insets.bottom, Spacing.two),
-          },
-        ]}>
-        {CLIENT_TAB_ROUTES.map((tab) => (
-          <TabTrigger key={tab.name} name={tab.name} asChild>
-            <BottomTabLink label={tab.label} icon={tab.icon} />
-          </TabTrigger>
-        ))}
-      </View>
+          <View style={[styles.content, { backgroundColor: theme.background }]}>
+            <ClientTopBar />
+            <TabSlot style={styles.tabSlot} />
+          </View>
+        </>
+      )}
     </Tabs>
   );
 }
