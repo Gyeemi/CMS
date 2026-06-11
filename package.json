@@ -50,6 +50,7 @@
     "android:tunnel": "node ./scripts/start-android-dev.mjs --tunnel",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "build": "expo export --platform web",
     "create-admin": "node ./scripts/create-admin.mjs",
     "migrate:booking-date": "node ./scripts/apply-booking-date-migration.mjs",
     "lint": "expo lint"
