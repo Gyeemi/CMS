@@ -1,14 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useCallback, useMemo } from 'react';
-import {
-  Platform,
-  ScrollView,
-  StyleSheet,
-  useWindowDimensions,
-  View,
-  type ViewStyle,
-} from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { StatValue } from '@/components/stat-value';
@@ -30,10 +23,6 @@ import {
 export default function ClientDashboardScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
-  const statColumns = width >= 1100 ? 6 : width >= 720 ? 3 : 2;
-  const useAndroidTwoRowStats = Platform.OS === 'android';
-  const useHorizontalStats = statColumns === 2 && !useAndroidTwoRowStats;
   const myBookings = useMyBookings();
   const pipelineBookings = useMyPipelineBookings();
   const { projects, refreshProjects } = useProjects();
@@ -125,10 +114,6 @@ export default function ClientDashboardScreen() {
     },
   ];
 
-  const statCards = statItems.map((item) => (
-    <StatCard key={item.label} {...item} columns={statColumns} />
-  ));
-
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: theme.background }}
@@ -144,29 +129,18 @@ export default function ClientDashboardScreen() {
         My Dashboard · Your GroovX studio overview
       </ThemedText>
 
-      {useAndroidTwoRowStats ? (
-        <View style={styles.androidStatGrid}>
-          <View style={styles.statRow}>
-            {statItems.slice(0, 3).map((item) => (
-              <StatCard key={item.label} {...item} columns={3} androidGrid />
-            ))}
-          </View>
-          <View style={styles.statRow}>
-            {statItems.slice(3, 6).map((item) => (
-              <StatCard key={item.label} {...item} columns={3} androidGrid />
-            ))}
-          </View>
+      <View style={styles.statGrid}>
+        <View style={styles.statRow}>
+          {statItems.slice(0, 3).map((item) => (
+            <StatCard key={item.label} {...item} />
+          ))}
         </View>
-      ) : useHorizontalStats ? (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.statsScroll}>
-          {statCards}
-        </ScrollView>
-      ) : (
-        <View style={[styles.grid, statColumns === 6 ? styles.gridWide : null]}>{statCards}</View>
-      )}
+        <View style={styles.statRow}>
+          {statItems.slice(3, 6).map((item) => (
+            <StatCard key={item.label} {...item} />
+          ))}
+        </View>
+      </View>
 
       <ThemedView type="backgroundElement" style={[styles.section, { borderColor: theme.border }]}>
         <ThemedText type="smallBold" style={styles.sectionTitle}>
@@ -214,31 +188,17 @@ function StatCard({
   amount,
   tone,
   icon,
-  columns,
-  androidGrid = false,
 }: {
   label: string;
   value?: string;
   amount?: number;
   tone: StatCardTone;
   icon: StatCardIcon;
-  columns: number;
-  androidGrid?: boolean;
 }) {
   const accent = STAT_TONES[tone];
-  const isMobile = columns === 2 || androidGrid;
-  const widthStyle: ViewStyle = androidGrid
-    ? styles.statItemAndroid
-    : columns === 6 || columns === 5
-      ? styles.statItemWide
-      : columns === 3
-        ? styles.statItemThird
-        : columns === 2
-          ? styles.statItemHalf
-          : styles.statItemMobile;
 
   return (
-    <View style={[styles.statItem, androidGrid && styles.statItemAndroidInner, widthStyle]}>
+    <View style={styles.statItem}>
       <View style={styles.iconSlot}>
         <SymbolView name={icon} size={24} tintColor={accent} />
       </View>
@@ -253,8 +213,8 @@ function StatCard({
         amount={amount}
         value={value}
         color={accent}
-        fontSize={isMobile ? 16 : 18}
-        style={[styles.statValue, isMobile && styles.statValueMobile]}
+        fontSize={16}
+        style={styles.statValue}
       />
     </View>
   );
@@ -275,13 +235,7 @@ const styles = StyleSheet.create({
   subtitle: {
     marginBottom: Spacing.one,
   },
-  statsScroll: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: Spacing.two,
-    paddingRight: Spacing.one,
-  },
-  androidStatGrid: {
+  statGrid: {
     gap: Spacing.three,
   },
   statRow: {
@@ -289,29 +243,14 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     gap: Spacing.two,
   },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'flex-start',
-    gap: Spacing.two,
-  },
-  gridWide: {
-    flexWrap: 'nowrap',
-    gap: Spacing.three,
-  },
   statItem: {
+    flex: 1,
+    minWidth: 0,
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
     gap: Spacing.one,
     paddingVertical: Spacing.two,
     minHeight: 112,
-  },
-  statItemAndroid: {
-    flex: 1,
-    minWidth: 0,
-  },
-  statItemAndroidInner: {
-    justifyContent: 'space-between',
   },
   iconSlot: {
     width: 40,
@@ -326,31 +265,10 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   statValue: {
-    fontSize: 18,
-    lineHeight: 22,
-    textAlign: 'center',
-    width: '100%',
-  },
-  statValueMobile: {
     fontSize: 16,
     lineHeight: 20,
-  },
-  statItemWide: {
-    flex: 1,
-    minWidth: 0,
-  },
-  statItemThird: {
-    flex: 1,
-    minWidth: 0,
-  },
-  statItemHalf: {
-    flex: 1,
-    minWidth: 0,
-  },
-  statItemMobile: {
-    width: 120,
-    flexGrow: 0,
-    flexShrink: 0,
+    textAlign: 'center',
+    width: '100%',
   },
   section: {
     borderWidth: 1,
