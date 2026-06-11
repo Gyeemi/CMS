@@ -113,7 +113,7 @@ function ClientMobileWebTabs() {
         <TabSlot style={styles.tabSlot} />
       </View>
 
-      <TabList
+      <View
         style={[
           styles.bottomTabList,
           {
@@ -127,7 +127,7 @@ function ClientMobileWebTabs() {
             <BottomTabLink label={tab.label} icon={tab.icon} />
           </TabTrigger>
         ))}
-      </TabList>
+      </View>
     </Tabs>
   );
 }

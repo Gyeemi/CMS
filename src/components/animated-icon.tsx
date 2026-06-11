@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { useState } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import { Dimensions, Platform, StyleSheet, View } from 'react-native';
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
@@ -10,7 +10,9 @@ const DURATION = 600;
 export function AnimatedSplashOverlay() {
   const [visible, setVisible] = useState(true);
 
-  if (!visible) return null;
+  // Reanimated worklet callbacks are unreliable on static web builds and can leave
+  // a full-screen overlay mounted forever.
+  if (Platform.OS === 'web' || !visible) return null;
 
   const splashKeyframe = new Keyframe({
     0: {
