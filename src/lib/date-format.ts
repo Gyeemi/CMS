@@ -13,6 +13,8 @@ const MONTH_NAMES = [
   'December',
 ] as const;
 
+export { MONTH_NAMES };
+
 function monthIndexFromName(name: string) {
   const lower = name.trim().toLowerCase();
   const full = MONTH_NAMES.findIndex((month) => month.toLowerCase() === lower);
@@ -113,6 +115,43 @@ export function startOfMonth(date: Date) {
 
 export function endOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+}
+
+export function addMonths(date: Date, count: number) {
+  return new Date(date.getFullYear(), date.getMonth() + count, 1);
+}
+
+export function isSameCalendarDay(left: Date, right: Date) {
+  return (
+    left.getFullYear() === right.getFullYear() &&
+    left.getMonth() === right.getMonth() &&
+    left.getDate() === right.getDate()
+  );
+}
+
+export function getCalendarMonthDays(month: Date) {
+  const first = startOfMonth(month);
+  const last = endOfMonth(month);
+  const days: { date: Date; inMonth: boolean }[] = [];
+
+  for (let index = 0; index < first.getDay(); index += 1) {
+    const date = new Date(first);
+    date.setDate(date.getDate() - (first.getDay() - index));
+    days.push({ date, inMonth: false });
+  }
+
+  for (let day = 1; day <= last.getDate(); day += 1) {
+    days.push({ date: new Date(month.getFullYear(), month.getMonth(), day), inMonth: true });
+  }
+
+  while (days.length % 7 !== 0) {
+    const previous = days[days.length - 1]?.date ?? last;
+    const date = new Date(previous);
+    date.setDate(date.getDate() + 1);
+    days.push({ date, inMonth: false });
+  }
+
+  return days;
 }
 
 export function getMonthRangeDisplay(date = new Date()) {

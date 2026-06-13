@@ -3,7 +3,7 @@ import { Alert, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ClientBookingList } from '@/components/client-booking-list';
-import { DateField } from '@/components/date-field';
+import { isOccupiedSessionDate, SessionDateField } from '@/components/session-date-field';
 import { FormField } from '@/components/form-field';
 import { PrimaryButton } from '@/components/primary-button';
 import { SelectField } from '@/components/select-field';
@@ -15,6 +15,7 @@ import { useBookings } from '@/context/bookings-context';
 import { useMyPipelineBookings } from '@/hooks/use-my-bookings';
 import { useTheme } from '@/hooks/use-theme';
 import { isDateOnOrAfterToday, startOfToday } from '@/lib/date-format';
+import { fetchOtherClientSessionIsoDates } from '@/lib/supabase/booking-occupied-dates';
 import { createEmptyBookingForm, type BookingFormData } from '@/types/client';
 import { PROJECT_CATEGORIES, PROJECT_TYPES } from '@/types/project';
 
@@ -67,6 +68,19 @@ export default function ClientBookingsScreen() {
     if (!isDateOnOrAfterToday(form.preferredDate)) {
       Alert.alert('Invalid date', 'Please choose today or a future date for your session.');
       return;
+    }
+
+    try {
+      const occupiedDates = await fetchOtherClientSessionIsoDates();
+      if (isOccupiedSessionDate(form.preferredDate, occupiedDates)) {
+        Alert.alert(
+          'Date unavailable',
+          'Another client already has a session on this date. Please choose a different date.',
+        );
+        return;
+      }
+    } catch {
+      // Availability check is best-effort if RPC is not deployed yet.
     }
 
     setSubmitting(true);
@@ -160,7 +174,7 @@ export default function ClientBookingsScreen() {
             value={form.projectCategory}
             onChange={(v) => update('projectCategory', v)}
           />
-          <DateField
+          <SessionDateField
             label="Preferred Date"
             value={form.preferredDate}
             onChange={(v) => update('preferredDate', v)}

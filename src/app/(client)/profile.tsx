@@ -228,13 +228,13 @@ export default function ClientProfileScreen() {
                     label="User Name"
                     value={userName}
                     onChangeText={setUserName}
-                    placeholder="Suraj"
+                    placeholder="Display name"
                   />
                   <FormField
                     label="First Name"
                     value={firstName}
                     onChangeText={setFirstName}
-                    placeholder="Suraj"
+                    placeholder="First name"
                     autoCapitalize="words"
                   />
                   <FormField
@@ -248,7 +248,7 @@ export default function ClientProfileScreen() {
                     label="Last Name"
                     value={lastName}
                     onChangeText={setLastName}
-                    placeholder="Dorji"
+                    placeholder="Last name"
                     autoCapitalize="words"
                   />
                   <FormField label="Email" value={user?.username ?? ''} editable={false} />

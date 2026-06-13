@@ -96,7 +96,7 @@ export default function SignupScreen() {
               label="First Name"
               value={firstName}
               onChangeText={setFirstName}
-              placeholder="Suraj"
+              placeholder="First name"
               autoCapitalize="words"
             />
             <FormField
@@ -110,7 +110,7 @@ export default function SignupScreen() {
               label="Last Name"
               value={lastName}
               onChangeText={setLastName}
-              placeholder="Dorji"
+              placeholder="Last name"
               autoCapitalize="words"
             />
             <FormField
