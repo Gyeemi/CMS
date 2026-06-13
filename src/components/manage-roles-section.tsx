@@ -5,10 +5,11 @@ import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, View } from 
 import { AdminPasswordConfirmModal } from '@/components/admin-password-confirm-modal';
 import { ChangePasswordModal } from '@/components/change-password-modal';
 import { EditNameModal } from '@/components/edit-name-modal';
-import { RemoveStaffModal } from '@/components/remove-staff-modal';
 import { FormField } from '@/components/form-field';
-import { SelectField } from '@/components/select-field';
+import { PhoneField } from '@/components/phone-field';
 import { PrimaryButton } from '@/components/primary-button';
+import { RemoveStaffModal } from '@/components/remove-staff-modal';
+import { SelectField } from '@/components/select-field';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
@@ -17,11 +18,11 @@ import { useTheme } from '@/hooks/use-theme';
 import { getRoleLabel } from '@/lib/roles';
 import { getSupabaseErrorMessage } from '@/lib/supabase/errors';
 import {
-  changeManagerPassword,
-  fetchStudioManagers,
-  inviteManager,
-  removeManager,
-  updateManagerName,
+    changeManagerPassword,
+    fetchStudioManagers,
+    inviteManager,
+    removeManager,
+    updateManagerName,
 } from '@/lib/supabase/managers';
 import type { ProfileRow, StaffInviteRole } from '@/types/database';
 
@@ -306,13 +307,7 @@ export function ManageRolesSection() {
             autoCapitalize="none"
             keyboardType="email-address"
           />
-          <FormField
-            label="Phone (optional)"
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="+975 XXX XX XXX"
-            keyboardType="phone-pad"
-          />
+          <PhoneField label="Phone (optional)" value={phone} onChangeValue={setPhone} />
           <FormField
             label="Password"
             value={password}

@@ -8,23 +8,23 @@ import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDisplayDate } from '@/lib/date-format';
-import { formatBhutanPhone } from '@/lib/phone-format';
+import { formatPhoneDisplay } from '@/lib/phone-format';
 import {
-  canDeleteManageClient,
-  fetchManageClients,
-  WALK_IN_CUSTOMER_LABEL,
-  type ManageClientRow,
+    canDeleteManageClient,
+    fetchManageClients,
+    WALK_IN_CUSTOMER_LABEL,
+    type ManageClientRow,
 } from '@/lib/supabase/manage-clients';
-import { deleteWalkInManageClient } from '@/lib/supabase/walk-in-clients-directory';
 import {
-  isWalkInManageClientPaymentCleared,
-  WALK_IN_DELETE_PAYMENT_BLOCKED_MESSAGE,
+    isWalkInManageClientPaymentCleared,
+    WALK_IN_DELETE_PAYMENT_BLOCKED_MESSAGE,
 } from '@/lib/supabase/walk-in-client-delete';
+import { deleteWalkInManageClient } from '@/lib/supabase/walk-in-clients-directory';
 
 function formatClientPhone(phone: string | null | undefined) {
   const trimmed = (phone ?? '').trim();
   if (!trimmed) return '—';
-  return formatBhutanPhone(trimmed);
+  return formatPhoneDisplay(trimmed);
 }
 
 function formatClientEmail(client: ManageClientRow) {

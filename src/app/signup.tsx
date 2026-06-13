@@ -1,25 +1,26 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FormField } from '@/components/form-field';
+import { PhoneField } from '@/components/phone-field';
 import { GroovXBrand } from '@/components/groovx-brand';
 import { PrimaryButton } from '@/components/primary-button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
-import { goBackOrReplace } from '@/lib/navigation';
 import { useTheme } from '@/hooks/use-theme';
-import { formatBhutanPhone } from '@/lib/phone-format';
+import { goBackOrReplace } from '@/lib/navigation';
+import { getDefaultPhoneValue, getPhoneValidationError } from '@/lib/phone-format';
 
 export default function SignupScreen() {
   const theme = useTheme();
@@ -29,7 +30,7 @@ export default function SignupScreen() {
   const [middleName, setMiddleName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('+975 ');
+  const [phone, setPhone] = useState(getDefaultPhoneValue());
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -40,6 +41,12 @@ export default function SignupScreen() {
 
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
+      return;
+    }
+
+    const phoneError = getPhoneValidationError(phone);
+    if (phoneError) {
+      setError(phoneError);
       return;
     }
 
@@ -115,12 +122,11 @@ export default function SignupScreen() {
               autoCorrect={false}
               keyboardType="email-address"
             />
-            <FormField
-              label="Phone"
+            <PhoneField
+              label="Phone Number"
               value={phone}
-              onChangeText={(value) => setPhone(formatBhutanPhone(value))}
-              placeholder="+975 XXX XX XXX"
-              keyboardType="phone-pad"
+              onChangeValue={setPhone}
+              hint="Tap +975 to choose your country code. Bhutan is the default."
             />
             <FormField
               label="Password"

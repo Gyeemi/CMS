@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { DeleteProjectModal } from '@/components/delete-project-modal';
 import { CurrencyField } from '@/components/currency-field';
+import { DeleteProjectModal } from '@/components/delete-project-modal';
 import { FormField } from '@/components/form-field';
+import { PhoneField } from '@/components/phone-field';
 import {
-  applyManageClientToProjectForm,
-  ManageClientPicker,
+    applyManageClientToProjectForm,
+    ManageClientPicker,
 } from '@/components/manage-client-picker';
 import { PrimaryButton } from '@/components/primary-button';
 import { SelectField } from '@/components/select-field';
@@ -17,12 +18,12 @@ import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useProjects } from '@/context/projects-context';
 import { useTheme } from '@/hooks/use-theme';
 import { printInvoice } from '@/lib/invoice-export';
+import { getPhoneValidationError, resolveArtistPhone } from '@/lib/phone-format';
 import { isRegisteredManageClientId } from '@/lib/supabase/link-project-client';
 import {
-  MANUAL_CLIENT_PICKER_ID,
-  type ManageClientRow,
+    MANUAL_CLIENT_PICKER_ID,
+    type ManageClientRow,
 } from '@/lib/supabase/manage-clients';
-import { formatBhutanPhone, isValidBhutanPhone, resolveArtistPhone } from '@/lib/phone-format';
 import {
     AUDIO_COPYRIGHTS,
     calculateBalance,
@@ -30,11 +31,11 @@ import {
     calculateTotal,
     createEmptyProjectForm,
     formatCurrency,
-    isComboProjectType,
     getAllowedProductionStatusLabelOptions,
     getProductionStatusFromLabel,
     getProductionStatusLabel,
     getProductionStatusTransitionError,
+    isComboProjectType,
     PROJECT_CATEGORIES,
     PROJECT_TYPES,
     type AudioCopyright,
@@ -202,11 +203,13 @@ export function ProjectForm({
       showMessage('Missing info', message);
       return;
     }
-    if (form.artistPhone.trim() && !isValidBhutanPhone(form.artistPhone)) {
-      const message = 'Enter a valid phone number (+975 XXX XX XXX).';
-      setSubmitError(message);
-      showMessage('Invalid phone', message);
-      return;
+    if (form.artistPhone.trim()) {
+      const phoneError = getPhoneValidationError(form.artistPhone);
+      if (phoneError) {
+        setSubmitError(phoneError);
+        showMessage('Invalid phone', phoneError);
+        return;
+      }
     }
     const submission = producerMatchesArtist ? { ...form, producer: form.artistName } : form;
     const linkedClientProfileId = isRegisteredManageClientId(selectedClient?.id)
@@ -327,12 +330,10 @@ export function ProjectForm({
           }}
           placeholder="Artist or band name"
         />
-        <FormField
+        <PhoneField
           label="Phone Number"
           value={form.artistPhone}
-          onChangeText={(v) => update('artistPhone', formatBhutanPhone(v))}
-          placeholder="+975 XXX XX XXX"
-          keyboardType="phone-pad"
+          onChangeValue={(value) => update('artistPhone', value)}
         />
         <View style={styles.switchRow}>
           <ThemedText type="smallBold">Producer same as Artist</ThemedText>

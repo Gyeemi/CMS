@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChangePasswordModal } from '@/components/change-password-modal';
 import { DeleteAccountModal } from '@/components/delete-account-modal';
 import { FormField } from '@/components/form-field';
+import { PhoneField } from '@/components/phone-field';
 import { LogoutButton } from '@/components/logout-button';
 import { PrimaryButton } from '@/components/primary-button';
 import { ThemedText } from '@/components/themed-text';
@@ -13,7 +14,7 @@ import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
 import { useTheme } from '@/hooks/use-theme';
 import { joinNameParts } from '@/lib/name-format';
-import { formatBhutanPhone, isValidBhutanPhone } from '@/lib/phone-format';
+import { formatPhoneDisplay, getDefaultPhoneValue, getPhoneValidationError } from '@/lib/phone-format';
 import { supabase } from '@/lib/supabase';
 import { getSupabaseErrorMessage } from '@/lib/supabase/errors';
 import {
@@ -39,7 +40,7 @@ export default function ClientProfileScreen() {
   const [firstName, setFirstName] = useState('');
   const [middleName, setMiddleName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [phone, setPhone] = useState('+975 ');
+  const [phone, setPhone] = useState(getDefaultPhoneValue());
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [editingProfile, setEditingProfile] = useState(false);
   const [savedProfile, setSavedProfile] = useState<ProfileFormState | null>(null);
@@ -82,7 +83,7 @@ export default function ClientProfileScreen() {
         firstName: nameParts.firstName,
         middleName: nameParts.middleName,
         lastName: nameParts.lastName,
-        phone: client.phone?.trim() ? formatBhutanPhone(client.phone) : '+975 ',
+        phone: client.phone?.trim() ? formatPhoneDisplay(client.phone) : getDefaultPhoneValue(),
       };
 
       applyProfileForm(form);
@@ -113,8 +114,9 @@ export default function ClientProfileScreen() {
       setError('Enter your last name.');
       return;
     }
-    if (!isValidBhutanPhone(phone)) {
-      setError('Enter a valid phone number (+975 XXX XX XXX).');
+    const phoneError = getPhoneValidationError(phone);
+    if (phoneError) {
+      setError(phoneError);
       return;
     }
 
@@ -250,12 +252,10 @@ export default function ClientProfileScreen() {
                     autoCapitalize="words"
                   />
                   <FormField label="Email" value={user?.username ?? ''} editable={false} />
-                  <FormField
+                  <PhoneField
                     label="Phone / WhatsApp"
                     value={phone}
-                    onChangeText={(value) => setPhone(formatBhutanPhone(value))}
-                    placeholder="+975 XXX XX XXX"
-                    keyboardType="phone-pad"
+                    onChangeValue={setPhone}
                   />
 
                   {error ? (

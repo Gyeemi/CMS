@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { FormField } from '@/components/form-field';
+import { PhoneField } from '@/components/phone-field';
 import { PrimaryButton } from '@/components/primary-button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -9,7 +10,7 @@ import { Radius, Spacing } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
 import { useStudioSettings } from '@/context/studio-settings-context';
 import { useTheme } from '@/hooks/use-theme';
-import { formatBhutanPhone, isValidBhutanPhone } from '@/lib/phone-format';
+import { formatPhoneDisplay, getPhoneValidationError } from '@/lib/phone-format';
 import { verifyCurrentUserPassword } from '@/lib/supabase/auth';
 import { getSupabaseErrorMessage } from '@/lib/supabase/errors';
 
@@ -69,8 +70,9 @@ export function ManageStudioSection() {
       return;
     }
 
-    if (!isValidBhutanPhone(contactNo)) {
-      setError('Enter a valid Bhutan contact number (+975 XXX XX XXX).');
+    const phoneError = getPhoneValidationError(contactNo);
+    if (phoneError) {
+      setError(phoneError);
       return;
     }
 
@@ -79,7 +81,7 @@ export function ManageStudioSection() {
       await updateDetails({
         licenceNo: licenceNo.trim(),
         tpnNo: tpnNo.trim(),
-        contactNo: formatBhutanPhone(contactNo),
+        contactNo: formatPhoneDisplay(contactNo),
         location: location.trim(),
       });
       setSuccess('Studio details saved. New invoices will use these details.');
@@ -182,13 +184,7 @@ export function ManageStudioSection() {
           onChangeText={setTpnNo}
           placeholder="Tax payer number"
         />
-        <FormField
-          label="Contact No."
-          value={contactNo}
-          onChangeText={(value) => setContactNo(formatBhutanPhone(value))}
-          placeholder="+975 XXX XX XXX"
-          keyboardType="phone-pad"
-        />
+        <PhoneField label="Contact No." value={contactNo} onChangeValue={setContactNo} />
         <FormField
           label="Location"
           value={location}

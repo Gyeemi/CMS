@@ -2,24 +2,24 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { AppState, Platform } from 'react-native';
 
 import {
-  getHomeRouteForRole,
-  type AuthSession,
-  type UserRole,
+    getHomeRouteForRole,
+    type AuthSession,
+    type UserRole,
 } from '@/lib/auth-storage';
+import { joinNameParts } from '@/lib/name-format';
 import { navigateToLanding } from '@/lib/navigation';
+import { getPhoneValidationError } from '@/lib/phone-format';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import {
-  clearExpiredLocalSession,
-  fetchProfile,
-  getSessionFromSupabase,
-  mapAuthSignInError,
-  normalizeLoginEmail,
-  profileToSession,
+    clearExpiredLocalSession,
+    fetchProfile,
+    getSessionFromSupabase,
+    mapAuthSignInError,
+    normalizeLoginEmail,
+    profileToSession,
 } from '@/lib/supabase/auth';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { ensureUserProfile } from '@/lib/supabase/profiles-setup';
 import { linkWalkInProjectsToClient } from '@/lib/supabase/walk-in-clients';
-import { joinNameParts } from '@/lib/name-format';
-import { isValidBhutanPhone } from '@/lib/phone-format';
 import type { ClientSignupData } from '@/types/client';
 
 async function tryEnsureUserProfile() {
@@ -237,9 +237,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!firstName) return { ok: false, error: 'Enter your first name.' };
     if (!lastName) return { ok: false, error: 'Enter your last name.' };
     if (!isValidEmail(email)) return { ok: false, error: 'Enter a valid email address.' };
-    if (!isValidBhutanPhone(phone)) {
-      return { ok: false, error: 'Enter a valid phone number (+975 XXX XX XXX).' };
-    }
+    const phoneError = getPhoneValidationError(phone);
+    if (phoneError) return { ok: false, error: phoneError };
     if (data.password.length < 6) {
       return { ok: false, error: 'Password must be at least 6 characters.' };
     }

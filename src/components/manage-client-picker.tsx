@@ -5,12 +5,12 @@ import { ThemedText } from '@/components/themed-text';
 import { FontFamily, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { clientNamesMatch } from '@/lib/client-name-match';
-import { formatBhutanPhone, normalizeBhutanPhoneDigits } from '@/lib/phone-format';
+import { formatPhoneDisplay, getDefaultPhoneValue, normalizeBhutanPhoneDigits } from '@/lib/phone-format';
 import {
-  fetchManageClients,
-  formatManageClientPickerLabel,
-  MANUAL_CLIENT_PICKER_ID,
-  type ManageClientRow,
+    fetchManageClients,
+    formatManageClientPickerLabel,
+    MANUAL_CLIENT_PICKER_ID,
+    type ManageClientRow,
 } from '@/lib/supabase/manage-clients';
 
 type ManageClientPickerProps = {
@@ -202,7 +202,7 @@ export function ManageClientPicker({
 }
 
 export function applyManageClientToProjectForm(client: ManageClientRow) {
-  const phone = client.phone?.trim() ? formatBhutanPhone(client.phone) : '+975 ';
+  const phone = client.phone?.trim() ? formatPhoneDisplay(client.phone) : getDefaultPhoneValue();
   return {
     artistName: client.fullName.trim(),
     artistPhone: phone,
