@@ -14,9 +14,29 @@ import { closeInvoicePrintPage, consumeInvoicePrintDraft, useAutoPrintOnWeb } fr
 import { goBackOrReplace } from '@/lib/navigation';
 import type { Project } from '@/types/project';
 
+function resolveRouteId(
+  id: string | string[] | undefined,
+  projectId: string | string[] | undefined,
+) {
+  const queryId = Array.isArray(projectId) ? projectId[0] : projectId;
+  if (queryId?.trim() && queryId !== '[id]') {
+    return queryId.trim();
+  }
+
+  const pathId = Array.isArray(id) ? id[0] : id;
+  if (pathId?.trim() && pathId !== '[id]') {
+    return pathId.trim();
+  }
+
+  return queryId?.trim() || pathId?.trim() || '';
+}
+
 export default function PrintInvoiceScreen() {
-  const { id } = useLocalSearchParams<{ id: string | string[] }>();
-  const projectId = Array.isArray(id) ? id[0] : id;
+  const { id, projectId: projectIdQuery } = useLocalSearchParams<{
+    id: string | string[];
+    projectId?: string | string[];
+  }>();
+  const projectId = resolveRouteId(id, projectIdQuery);
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { getProject, isLoading } = useProjects();

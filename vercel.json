@@ -3,6 +3,24 @@
   "outputDirectory": "dist",
   "framework": null,
   "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/invoice/print/:id",
+      "destination": "/invoice/print/[id]"
+    },
+    {
+      "source": "/invoice/:id",
+      "destination": "/invoice/[id]"
+    },
+    {
+      "source": "/project/:id",
+      "destination": "/project/[id]"
+    },
+    {
+      "source": "/office/expenses/print/:id",
+      "destination": "/office/expenses/print/[id]"
+    }
+  ],
   "headers": [
     {
       "source": "/sw.js",

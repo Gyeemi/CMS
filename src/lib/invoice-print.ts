@@ -31,7 +31,8 @@ export function openInvoicePrintPage(projectId: string) {
     throw new Error('Print is only available in the browser.');
   }
 
-  const url = `${window.location.origin}/invoice/print/${encodeURIComponent(projectId)}`;
+  const encodedId = encodeURIComponent(projectId);
+  const url = `${window.location.origin}/invoice/print/${encodedId}?projectId=${encodedId}`;
   const printWindow = window.open(url, '_blank', 'noopener,noreferrer,width=960,height=720');
 
   if (!printWindow) {
